@@ -18,12 +18,18 @@ class ServerThread(Thread):
 
 def main():
     tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     tcpServer.bind((TCP_IP, TCP_PORT))
 
     while True:
         tcpServer.listen(1)
         (conn, (ip, port)) = tcpServer.accept()
+        while True:
+            data = conn.recv(16).decode()
+            if not data:
+                break
+            print("from connected user: " + str(data))
+            conn.close()
+            break;
 
 
 if __name__ == '__main__':
