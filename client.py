@@ -9,8 +9,8 @@ import threading
 
 sys.path.append('gui')
 
-#TCP_IP = '192.168.1.109'
-TCP_IP = '127.0.0.1'
+TCP_IP = '192.168.1.109'
+#TCP_IP = '127.0.0.1'
 TCP_PORT = 9999
 
 class KittyClient():
