@@ -11,7 +11,7 @@ def set_pwm(x, y, seconds=1):
     GPIO.setup(PWM0_PIN, GPIO.OUT)
     GPIO.setup(PWM1_PIN, GPIO.OUT)
     pwmX = GPIO.PWM(PWM0_PIN, 50)
-    pwmY = GPIO.PWM(PWM0_PIN, 50)
+    pwmY = GPIO.PWM(PWM1_PIN, 50)
     convertedX = (x*10/180.0)
     convertedY = (y*10/180.0)
     print("PWM SET TO %f, %f" % (convertedX, convertedY))
