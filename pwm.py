@@ -2,9 +2,12 @@
 
 import RPi.GPIO as GPIO
 import time, sys, os
+import thread
 
 PWM0_PIN = 12
 PWM1_PIN = 13
+
+
 
 
 class Pwms():
@@ -16,24 +19,34 @@ class Pwms():
         self.pwmY = GPIO.PWM(PWM1_PIN, 50)
         self.lastXpos = 45
         self.lastYpos = 45
+        self.pwmXval = self.lastXpos
+        self.pwmYval = self.lastYpos
 
-    def start1ms(self):
-        self.pwmX.start(5)
+    def pwmStopTimerThread(self, t, pwm):
+        time.sleep(t)
+        pwm.stop()
 
-    def start2ms(self):
-        self.pwmX.start(10)
+    def setX(self, x):
+        self.pwmXval = angleToPwm(x)
+        self.pwmX.start(self.pwmXval)
+        timer = thread.Thread(target=self.pwmStopTimerThread, args=(1, pwmX))
+        self.lastXpos = x
+        timer.start()
 
-    def stop1ms(self):
-        self.pwmX.stop()
-
-    def stop2ms(self):
-        self.pwmX.stop()
+    def setY(self, y):
+        self.pwmY.start(angleToPwm(y))
+        timer = thread.Thread(target=self.pwmStopTimerThread, args=(1, pwmY))
+        self.lastYpos = y
+        timer.start()
 
     def deinit(self):
         pwmX.stop()
         pwmY.stop()
         GPIO.cleanup()
 
+
+def angleToPwm(self, angle):
+    return (angle / 180.0) * 12.0
 
 def set_pwm(x, y, seconds=1):
     GPIO.setmode(GPIO.BCM)
