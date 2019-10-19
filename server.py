@@ -5,7 +5,7 @@ import struct
 import threading
 
 #TODO : need to redo following code
-from set_pwm import *
+from pwm import Pwm
 
 #TCP_IP = '127.0.0.1'
 TCP_IP = '192.168.1.109'
