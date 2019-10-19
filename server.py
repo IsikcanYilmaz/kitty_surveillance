@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import socket
+import struct
 from threading import Thread
-from SocketServer import ThreadingMixIn
 
 TCP_IP = '127.0.0.1'
-TCP_PORT = 9999
+TCP_PORT = 8888
 BUFFER_SIZE = 20
 
 class ServerThread(Thread):
@@ -24,12 +24,13 @@ def main():
         tcpServer.listen(1)
         (conn, (ip, port)) = tcpServer.accept()
         while True:
-            data = conn.recv(16).decode()
+            data = bytes(conn.recv(4))
             if not data:
                 break
-            print("from connected user: " + str(data))
-            conn.close()
-            break;
+            print(data)
+            print("from connected user: ")
+            print("length:", len(data))
+            print(struct.unpack('I', data))
 
 
 if __name__ == '__main__':
