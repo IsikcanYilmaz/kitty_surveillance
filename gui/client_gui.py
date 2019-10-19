@@ -27,6 +27,12 @@ class MainWindow(QWidget):
         mainLayout.addWidget(self.buttonPanel)
         self.setLayout(mainLayout)
 
+    def keyPressEvent(self, keyEvent):
+        super(MainWindow, self).keyPressEvent(keyEvent)
+        print(keyEvent)
+
+
+
 
 def GuiThread(clientHandle):
     app = QApplication(sys.argv)
