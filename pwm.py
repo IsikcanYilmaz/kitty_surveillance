@@ -2,7 +2,7 @@
 
 import RPi.GPIO as GPIO
 import time, sys, os
-import thread
+import threading
 
 PWM0_PIN = 12
 PWM1_PIN = 13
@@ -29,13 +29,13 @@ class Pwms():
     def setX(self, x):
         self.pwmXval = angleToPwm(x)
         self.pwmX.start(self.pwmXval)
-        timer = thread.Thread(target=self.pwmStopTimerThread, args=(1, pwmX))
+        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, pwmX))
         self.lastXpos = x
         timer.start()
 
     def setY(self, y):
         self.pwmY.start(angleToPwm(y))
-        timer = thread.Thread(target=self.pwmStopTimerThread, args=(1, pwmY))
+        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, pwmY))
         self.lastYpos = y
         timer.start()
 
