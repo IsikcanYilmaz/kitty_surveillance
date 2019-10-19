@@ -24,18 +24,22 @@ class Pwms():
 
     def pwmStopTimerThread(self, t, pwm):
         time.sleep(t)
+        print("[PWM] Stopping pwm", pwm);
         pwm.stop()
 
     def setX(self, x):
         self.pwmXval = angleToPwm(x)
         self.pwmX.start(self.pwmXval)
-        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, pwmX))
+        print("[PWM] Setting X to %d angles, pwm duty cycle to %f" % (x, self.pwmXval))
+        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, self.pwmX))
         self.lastXpos = x
         timer.start()
 
     def setY(self, y):
+        self.pwmYval = angleToPwm(y)
         self.pwmY.start(angleToPwm(y))
-        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, pwmY))
+        print("[PWM] Setting Y to %d angles, pwm duty cycle to %f" % (y, self.pwmYval))
+        timer = threading.Thread(target=self.pwmStopTimerThread, args=(1, self.pwmY))
         self.lastYpos = y
         timer.start()
 
@@ -48,22 +52,6 @@ class Pwms():
 def angleToPwm(angle):
     return (angle / 180.0) * 12.0
 
-def set_pwm(x, y, seconds=1):
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(PWM0_PIN, GPIO.OUT)
-    GPIO.setup(PWM1_PIN, GPIO.OUT)
-    pwmX = GPIO.PWM(PWM0_PIN, 50)
-    pwmY = GPIO.PWM(PWM1_PIN, 50)
-    convertedX = (x*10/180.0)
-    convertedY = (y*10/180.0)
-    print("PWM SET TO %f, %f" % (convertedX, convertedY))
-    pwmX.start(convertedX)
-    pwmY.start(convertedY)
-    time.sleep(seconds)
-    pwmX.stop()
-    pwmY.stop()
-    GPIO.cleanup()
-
 def main():
     if (len(sys.argv) != 4):
         print("USAGE: test_pwm.py <pwm> <duty_cycle> <seconds>")
@@ -73,21 +61,14 @@ def main():
     seconds    = float(sys.argv[3])
     print("PWM %d at %f for %f seconds" % (pwm_choice, duty_cycle, seconds))
 
+    #p = Pwms()
 
-    if (pwm_choice == 0):
-        GPIO.setup(PWM0_PIN, GPIO.OUT)
-        pwm = GPIO.PWM(PWM0_PIN, 50)
-    elif (pwm_choice == 1):
-        GPIO.setup(PWM1_PIN, GPIO.OUT)
-        pwm = GPIO.PWM(PWM1_PIN, 50)
-    else:
-        GPIO.cleanup()
-        exit(1)
-
-    pwm.start(duty_cycle)
-    time.sleep(seconds)
-    pwm.stop()
-    GPIO.cleanup()
-
+   
 if __name__ == "__main__":
-    main()
+    p = Pwms()
+    x = y = 45
+    while True:
+        p.setX(x)
+        p.setY(y)
+        x = int(input("ENTER X"))
+        y = int(input("ENTER Y"))
