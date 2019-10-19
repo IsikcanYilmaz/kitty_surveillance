@@ -45,7 +45,7 @@ class Pwms():
         GPIO.cleanup()
 
 
-def angleToPwm(self, angle):
+def angleToPwm(angle):
     return (angle / 180.0) * 12.0
 
 def set_pwm(x, y, seconds=1):

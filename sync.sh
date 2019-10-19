@@ -14,3 +14,8 @@ SRC="$HOME/kitty_surveillance_media"
 DST="/home/$DST_NAME/kitty_surveillance_media/*"
 
 rsync -avz -e ssh $DST_NAME"@"$DST_ADDR:$DST $SRC
+
+SRC="$HOME/KOMOD/kitty_surveillance_media/*"
+DST="/home/$DST_NAME/kitty_surveillance/"
+
+rsync -avz -e ssh $DST_NAME"@"$DST_ADDR:$DST $SRC
