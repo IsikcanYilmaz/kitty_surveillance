@@ -7,6 +7,7 @@ PWM0_PIN = 12
 PWM1_PIN = 13
 
 def set_pwm(x, y, seconds=1):
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(PWM0_PIN, GPIO.OUT)
     GPIO.setup(PWM1_PIN, GPIO.OUT)
     pwmX = GPIO.PWM(PWM0_PIN, 50)
@@ -28,7 +29,6 @@ def main():
     seconds    = float(sys.argv[3])
     print("PWM %d at %f for %f seconds" % (pwm_choice, duty_cycle, seconds))
 
-    GPIO.setmode(GPIO.BCM)
 
     if (pwm_choice == 0):
         GPIO.setup(PWM0_PIN, GPIO.OUT)
