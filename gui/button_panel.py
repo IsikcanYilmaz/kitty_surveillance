@@ -5,12 +5,13 @@ from PyQt5.QtCore import pyqtSlot
 
 from gui.custom_button import CustomButton
 
+from common import *
+
 LEFT_PRESS  = 0
 RIGHT_PRESS = 1
 UP_PRESS    = 2
 DOWN_PRESS  = 3
 
-INCREMENT_RATE = 1
 
 class ButtonPanel(QtWidgets.QGroupBox):
     def __init__(self, parent):
@@ -39,13 +40,13 @@ class ButtonPanel(QtWidgets.QGroupBox):
     def buttonPushed(self, button):
         print("%d PRESSED" % button)
         if button == LEFT_PRESS:
-            self.parent.clientHandle.moveX(-INCREMENT_RATE)
+            self.parent.clientHandle.moveX(-GUI_INCREMENT_RATE)
         if button == RIGHT_PRESS:
-            self.parent.clientHandle.moveX(INCREMENT_RATE)
+            self.parent.clientHandle.moveX(GUI_INCREMENT_RATE)
         if button == UP_PRESS:
-            self.parent.clientHandle.moveY(INCREMENT_RATE)
+            self.parent.clientHandle.moveY(GUI_INCREMENT_RATE)
         if button == DOWN_PRESS:
-            self.parent.clientHandle.moveY(-INCREMENT_RATE)
+            self.parent.clientHandle.moveY(-GUI_INCREMENT_RATE)
 
 
 

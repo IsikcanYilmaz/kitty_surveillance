@@ -1,0 +1,48 @@
+
+### VIDEO RECORDING/STREAMING
+    CURRENTLY:
+    Create file out of video stream socket. Write directly to it. 
+
+### MOTOR HANDLING
+    CURRENTLY:
+    Not much is going on
+
+### DATA TRANSFER/HANDLING
+
+        [ Pi ] <-------------> [ Client ]
+  Video Stream -------------->  TCP (port 9999)
+  Misc. Comms  <------------->  TCP (port 9998)
+  | 
+  |_Rx Thread  <--------------  Tx Thread
+  | Tx Thread  -------------->  Rx Thread
+  |
+  |_main loop                   main loop
+      |                                 |
+      |_check if there's unhandled      |_pyqt5 gui
+        input command. if so, handle    
+
+  
+  Initial Connection/Handshake Sequence:
+  - Server waits for connection on COMMS PORT
+  - Client initiates connection. Gets accepted.
+  - TODO: ADD SECURITY
+  - If client passes the security, server starts the video UDP server on VIDEO PORT, waits for connection from
+  the same client. 
+  - Client connects to VIDEO PORT. 
+
+  Client:
+  KittyClient -> mainThread: controls PWM, waits for input.
+                 videoThread: 
+
+                 clientRxThread: receives comms packets from server instance.
+                  - Fills the rxBuffer. raises input available flag when there is at
+                  least 1 entire comms packet in the rxBuffer
+                 clientTxThread: sends comms packets to server instance.
+                  - Sends the bytes that are buffered in txBuffer, to the server instance.
+
+                 guiThread: pyqt5 gui instance.
+                 motors: class that controls the motors, driven by pwm
+                  - setX(), setY() to move the camera
+                  - One thread that checks if the angle of the camera is the same 
+                  as the "target" angle. if not the same, increment current angle by
+                  GUI_INCREMENT_RATE.

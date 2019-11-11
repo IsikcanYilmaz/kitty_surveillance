@@ -7,7 +7,7 @@ PWM0_PIN = 12
 PWM1_PIN = 13
 NUMSWEEPS = 2
 INCREMENT = 0.5
-SLEEP    = 0.1
+SLEEP    = 0.01
 CEILING  = 10.0
 
 if (len(sys.argv) != 2):
@@ -41,5 +41,5 @@ for i in range(0, NUMSWEEPS):
         duty_cycle -= INCREMENT
         print(duty_cycle)
 
-pwm.stop
+pwm.stop()
 GPIO.cleanup()
