@@ -16,6 +16,8 @@ PWM1_INDEX = 1 # Y
 # TODO # there's a lot of redundancy, and frankly ugly looking code. this is mostly due to not understanding
 # how the pointer equivalent in python works. TODO refactor
 
+# TODO PLEASE FOR THE LOVE OF GOD CLEAN UP THIS CODE
+
 
 class Motors():
     def __init__(self):

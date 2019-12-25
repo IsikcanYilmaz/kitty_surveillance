@@ -5,7 +5,9 @@
 
 ### MOTOR HANDLING
     CURRENTLY:
-    Not much is going on
+    pwm.py has the Motor class that handles a pair of servos, x and y. 
+    A thread handles each servo. TODO: pwm.py needs cleaning and the 
+    control of the motors need smoothening.
 
 ### DATA TRANSFER/HANDLING
 
