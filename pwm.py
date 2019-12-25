@@ -1,83 +1,131 @@
 #!/usr/bin/python3
 
 import RPi.GPIO as GPIO
+from pwm_sweep import *
 import time, sys, os
 import threading
+
+from common import *
+
+MOTOR_PWM_FREQUENCY = 50 # Hz
+
+PWM0_INDEX = 0 # X
+PWM1_INDEX = 1 # Y
+
+
+# TODO # there's a lot of redundancy, and frankly ugly looking code. this is mostly due to not understanding
+# how the pointer equivalent in python works. TODO refactor
 
 
 class Motors():
     def __init__(self):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(PWM0_PIN, GPIO.OUT)
-        GPIO.setup(PWM1_PIN, GPIO.OUT)
-        self.pwmX = GPIO.PWM(PWM0_PIN, 50)
-        self.pwmY = GPIO.PWM(PWM1_PIN, 50)
+        # Initialize PWM channels for servos
+        self.pwmX = self.pwmInit(PWM0_PIN)
+        self.pwmY = self.pwmInit(PWM1_PIN)
+        self.pwmObjects = [self.pwmX, self.pwmY]
+
         self.lastXpos = 45
         self.lastYpos = 45
         self.pwmXval = self.lastXpos
         self.pwmYval = self.lastYpos
 
-        self.currentXval = 0
-        self.currentYval = 0
-        self.targetXval  = angleToPwm(45)
-        self.targetYval  = angleToPwm(45)
+        self.targetXval = angleToPwm(45)
+        self.targetYval = angleToPwm(45)
+        self.targets    = [self.targetXval, self.targetYval]
 
-        self.threadRunning = True
-        self.pwmPollThread = threading.Thread(target=self.pwmPoll)
-        self.pwmPollThread.start()
+        self.xChanged = False
+        self.yChanged = False
+        self.xChangedEvent = threading.Event()
+        self.yChangedEvent = threading.Event()
+        self.threadChangedEvents = [self.xChangedEvent, self.yChangedEvent]
 
-    def pwmPoll(self):
-        while(self.threadRunning):
-            if (self.currentXval != self.targetYval and abs(self.currentXval - self.targetXval) > PWM_INCREMENT_RATE):
-                if (self.currentXval < self.targetXval):
-                    self.currentXval += PWM_INCREMENT_RATE
-                else:
-                    self.currentXval -= PWM_INCREMENT_RATE
-                print("[PWM] X %f->%f" % (self.currentXval, self.targetXval))
-                self.pwmX.start(round(self.targetXval, SIG_FIGS))
-            else:
-                self.pwmX.stop()
+        self.threadXRunning = False
+        self.threadYRunning = False
+        self.threadXRunningLock = threading.Lock()
+        self.threadYRunningLock = threading.Lock()
 
-            if (self.currentYval != self.targetXval and abs(self.currentYval - self.targetYval) > PWM_INCREMENT_RATE):
-                if (self.currentYval < self.targetYval):
-                    self.currentYval += PWM_INCREMENT_RATE
-                else:
-                    self.currentYval -= PWM_INCREMENT_RATE
-                print("[PWM] Y %f->%f" % (self.currentYval, self.targetYval))
-                self.pwmY.start(round(self.targetYval, SIG_FIGS))
-            else:
-                self.pwmY.stop()
+        self.threadRunningFlags = [self.threadXRunning, self.threadYRunning]
+        self.threadXInstance = threading.Thread(target=self.pollThreadFn, args=[self.pwmX, self.threadRunningFlags, self.threadChangedEvents, self.targets, PWM0_PIN])
+        #self.threadYInstance = threading.Thread(target=self.threadY, args=[self.pwmY, self.yChanged, self.threadYRunning, PWM1_PIN])
 
-            time.sleep(POLL_PERIOD)
+        #self.threadRunning = True
+        #self.pwmPollThread = threading.Thread(target=self.pwmPoll)
+        #self.pwmPollThread.start()
+
+        self.threadXInstance.start()
+
+    def pwmInit(self, pin):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(pin, GPIO.OUT)
+        pwm = GPIO.PWM(pin, MOTOR_PWM_FREQUENCY)
+        pwm.start(0)
+        return pwm
+
+    def setAngle(self, pwm, pin, angle):
+        duty = angleToPwm(angle)
+        print("SET ANGLE %d->%d (%f)" % (pin, angle, duty))
+        GPIO.output(pin, True)
+        pwm.ChangeDutyCycle(duty)
+        time.sleep(0.3) # TODO VARIABLE SLEEP TIME
+        GPIO.output(pin, False)
+        pwm.ChangeDutyCycle(0)
+
+    # The thread function that drives one servo motor.
+    def pollThreadFn(self, pwm, runningFlags, valChangedEvents, targets, pin):
+        # BENDING OVER BACKWARDS DUE TO BEING UNABLE TO PASS A POINTER TO THIS THREAD
+        print(runningFlags)
+        if (pin == PWM0_PIN): # THIS MOTOR IS THE X AXIS ONE
+            motor_str = "X"
+            pin_index = PWM0_INDEX
+        elif (pin == PWM1_PIN):
+            motor_str = "Y"
+            pin_index = PWM1_INDEX
+        else:
+            print("[!] INCORRECT PIN.")
+            return
+        print("[*] Thread for motor %s created." % (motor_str))
+        runningFlags[pin_index] = True
+        while runningFlags[pin_index]:
+            valChangedEvents[pin_index].wait()
+            print("[*] Setting %s to %d degrees" % (motor_str, targets[pin_index]), targets, runningFlags)
+            self.setAngle(self.pwmObjects[pin_index], pin, targets[pin_index])
+            valChangedEvents[pin_index].clear()
+        print("[*] Thread %s exiting." % (motor_str))
 
     def setX(self, x):
         self.targetXval = angleToPwm(x)
-        print("[PWM] Setting X to %d angles, pwm duty cycle to %f" % (x, self.targetXval))
+        self.targets[PWM0_INDEX] = x
+        self.xChanged = True
+        self.xChangedEvent.set()
+        #print("[PWM] Setting X to %d angles, pwm duty cycle to %f" % (x, self.targetXval))
 
     def setY(self, y):
         self.targetYval = angleToPwm(y)
-        print("[PWM] Setting Y to %d angles, pwm duty cycle to %f" % (y, self.targetYval))
+        self.yChanged = True
+        #print("[PWM] Setting Y to %d angles, pwm duty cycle to %f" % (y, self.targetYval))
 
     def deinit(self):
         self.pwmX.stop()
         self.pwmY.stop()
         self.GPIO.cleanup()
         self.threadRunning = False
+        self.threadXInstance.join()
 
 
 def angleToPwm(angle):
-    return round((angle / 180.0) * 12.0, SIG_FIGS)
+    return (angle/18) + 2
 
 def main():
-    if (len(sys.argv) != 4):
-        print("USAGE: test_pwm.py <pwm> <duty_cycle> <seconds>")
-        exit(1)
-    pwm_choice = int(sys.argv[1])
-    duty_cycle = float(sys.argv[2])
-    seconds    = float(sys.argv[3])
-    print("PWM %d at %f for %f seconds" % (pwm_choice, duty_cycle, seconds))
-
-
+    motors = Motors()
+    while True:
+        a = input("[*] Enter Angle:")
+        a_int = int(a)
+        motors.setX(a_int)
+        #print(motors.targets)
+        #motors.threadRunningFlags[PWM0_INDEX] = False
+    print("break out")
+    while True:
+        pass
 
 if __name__ == "__main__":
-    pass
+    main()

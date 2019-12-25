@@ -3,6 +3,11 @@
 # Short script to satisfy quick file transfers/synchronizations
 # between main dev machine and raspberry pi
 
+# USAGE:
+# Have DST_ADDR set in your env variables to be the ip address of the pi
+# Have DST_NAME set to be the hostname
+# run by doing  $ ./sync.sh
+
 # Have an environment variable to hold the pi's ip address
 if [ -z "$DST_ADDR" ] || [ -z "$DST_NAME" ]; then
   echo "Set the env variable DST_ADDR to raspi's ip address."

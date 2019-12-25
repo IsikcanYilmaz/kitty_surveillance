@@ -14,31 +14,40 @@ BUFFER_SIZE = 20
 
 class KittyServer():
     def __init__(self, ip, video_port, comms_port):
+        self.ip = ip
+        self.video_port = video_port
+        self.comms_port = comms_port
+
         self.commsServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsServer.bind((ip, comms_port))
         self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.videoServer.bind((ip, video_port))
 
-        self.serverRxThread = threading.Thread(target=self.ServerTxThread)
-        self.serverTxThread = threading.Thread(target=self.ServerRxThread)
+        self.serverRxThread = threading.Thread(target=self.ServerRxThread)
+        self.serverTxThread = threading.Thread(target=self.ServerTxThread)
 
+        self.connectionEstablished = False
         self.clientConnection = {}
 
         self.cameraX = 45
         self.cameraY = 45
         self.camera = camera.Camera()
 
-        #self.motors = Motors()
+        self.motors = Motors()
 
     def ServerRxThread(self):
+        print("[+] Server Rx thread started")
+        while (self.connectionEstablished):
+            rxData = self.clientConnection['commsConn'].recv(2 * 4)
+            print("[+] Data received", rxData)
+            self.processInput(rxData)
 
-        pass
 
     def ServerTxThread(self):
         pass
 
     def connectionSequence(self):
-        print("[+] Waiting for connection")
+        print("[+] Waiting for connection on port %d" % (self.comms_port))
         self.commsServer.listen(1)
         (conn, (ip, port)) = self.commsServer.accept()
         self.clientConnection = {
@@ -49,9 +58,21 @@ class KittyServer():
                                 }
         print("[+] Comms port connection established with %s" % ip)
         # TODO # add security measures before opening up video server
+
+        print("[+] Waiting for connection on port %d" % (self.video_port))
         self.videoServer.listen(1)
         (conn, (ip, port)) = self.videoServer.accept()
         print("[+] Video port connection established with %s" % ip)
+        self.connectionEstablished = True
+        self.clientConnection['running'] = True
+
+        # BOTH COMMS AND VIDEO CONNECTIONS ESTABLISHED AT THIS POINT
+        # GET FILE DESCRIPTOR OUT OF OUR CONNECTION SOCKET. WRITE VIDEO STREAM TO IT
+        self.videoClient = conn
+        self.videoClientFile = self.videoClient.makefile('wb')
+
+        print("[+] Starting stream", self.videoClient, self.videoClientFile)
+        self.camera.startStream(self.videoClientFile)
 
 
     def terminateConnection(self):
@@ -65,10 +86,21 @@ class KittyServer():
         print('[+] Connection with %s terminated' % self.clientConnection['ip'])
 
 
-    def receiveInput(self, data):
+    def processInput(self, data):
         unpackedData = struct.unpack('II', data)
         newX = unpackedData[0]
         newY = unpackedData[1]
+
+        if (newX < 0):
+            newX = 0
+        elif (newX > 180):
+            newX = 180
+
+        if (newY < 0):
+            newY = 0
+        elif (newY > 180):
+            newY = 180
+
         self.motors.setX(newX)
         self.motors.setY(newY)
         print("NEW X: %d, NEW Y: %d" % (newX, newY))
@@ -80,8 +112,12 @@ class KittyServer():
 
         # MAIN LOOP
         self.connectionSequence()
+        self.serverRxThread.start()
         while self.clientConnection['running']:
-            self.terminateConnection()
+            pass
+            #self.terminateConnection()
+
+        print("[+] Shutting down server")
 
 
 

@@ -15,7 +15,7 @@ sys.path.append('gui')
 TCP_IP = '192.168.1.100'
 TCP_PORT = 9999
 
-VLC = True
+VLC = False
 
 class KittyClient():
     def __init__(self):
@@ -36,10 +36,10 @@ class KittyClient():
         self.txRunning     = False
         self.videoRxRunning = False
 
-        self.cameraX = 45
-        self.cameraY = 45
-        self.cameraXfloat = 45.0
-        self.cameraYfloat = 45.0
+        self.cameraX = 0
+        self.cameraY = 0
+        self.cameraXfloat = 0
+        self.cameraYfloat = 0
 
         self.rxBuffer = []
         self.txBuffer = []
@@ -47,13 +47,12 @@ class KittyClient():
         self.txBufferPtr = 0
 
     def connect(self):
-        #self.commsClientSocket.connect((SERVER_IP_ADDR, COMMS_IP_PORT))
+        self.commsClientSocket.connect((SERVER_IP_ADDR, COMMS_IP_PORT))
         # TODO # DO SECURITY HANDSHAKE
+        time.sleep(2)
         self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
         self.connected = True
         print("[+] Client connected to %s successfully" % SERVER_IP_ADDR)
-
-
 
     def disconnect(self):
         self.commsClientSocket.close()
@@ -69,18 +68,20 @@ class KittyClient():
             cmdline = ['vlc', '--demux', 'h264', '-']
             player = subprocess.Popen(cmdline, stdin=subprocess.PIPE)
         else:
-            f = open("teststream", "wb")
+            f = open("teststream.h264", "wb")
 
         while self.videoRxRunning:
             while (not self.connected):
                 pass
+            print("[+] Video Connected! Stream to file:", (not VLC))
             buf = []
             while True:
                 data = self.videoClientSocket.recv(1024)
                 if not data:
+                    print("[!] Not data line 81")
                     break
                 else:
-                    print(data)
+                    #print(data)
                     if (VLC):
                         player.stdin.write(data)
                     else:
@@ -89,6 +90,7 @@ class KittyClient():
                 f.close()
 
             self.videoRxRunning = False
+            print("[+] Ending video stream")
 
 
     #def clientRxThread(self):
@@ -108,6 +110,15 @@ class KittyClient():
 
             # TRANSMIT NEW X AND Y
             try:
+                if (self.cameraXfloat < 0):
+                    self.cameraXfloat = 0
+                if (self.cameraXfloat > 255):
+                    self.cameraXfloat = 255
+
+                if (self.cameraYfloat < 0):
+                    self.cameraYfloat = 0
+                if (self.cameraYfloat > 255):
+                    self.cameraYfloat = 255
                 self.commsClientSocket.send(struct.pack('II', int(self.cameraXfloat), int(self.cameraYfloat)))
             except Exception as e:
                 print("closing", e)
@@ -117,18 +128,32 @@ class KittyClient():
         self.clientRunning = False
         self.disconnect()
 
+    def setX(self, angle):
+        self.cameraXfloat = angle
+
+    def setY(self, angle):
+        self.cameraYfloat = angle
+
     def moveX(self, rate):
         self.cameraXfloat += rate
+        if self.cameraXfloat > 180:
+            self.cameraXfloat = 180
+        if self.cameraXfloat < 0:
+            self.cameraXfloat = 0
         print(self.cameraXfloat)
 
     def moveY(self, rate):
         self.cameraYfloat += rate
+        if self.cameraYfloat > 180:
+            self.cameraYfloat = 180
+        if self.cameraYfloat < 0:
+            self.cameraYfloat = 0
         print(self.cameraYfloat)
 
     def startClient(self):
         self.clientRunning = True
         self.videoThread.start()
-        #self.clientThread.start()
+        self.clientThread.start()
         #self.rxThread.start()
         #self.txThread.start()
 
@@ -136,6 +161,7 @@ class KittyClient():
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--gui_only', dest='gui_only', action='store_true', default=False, help='DEBUG only show gui for test purposes')
+    parser.add_argument('--camera_only', dest='camera_only', action='store_true', default=False, help='DEBUG only run the camera server')
 
     args = parser.parse_args()
     print(args.gui_only)
@@ -150,7 +176,7 @@ def main():
     while (client.clientRunning or client.guiRunning):
         pass
 
-    print("Done. Exiting")
+    print("[+] Done. Exiting")
 
 if __name__ == "__main__":
     main()

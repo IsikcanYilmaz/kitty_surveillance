@@ -1,7 +1,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from gui.custom_button import CustomButton
 
@@ -29,13 +29,23 @@ class ButtonPanel(QtWidgets.QGroupBox):
         self.upButton.clicked.connect(lambda: self.buttonPushed(UP_PRESS))
         self.downButton.clicked.connect(lambda: self.buttonPushed(DOWN_PRESS))
 
+        self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        self.slider.setMinimum = 0
+        self.slider.setMaximum = 180
+
         innerLayout.addWidget(self.upButton,     0, 0)
         innerLayout.addWidget(self.downButton,   0, 1)
         innerLayout.addWidget(self.leftButton,   1, 0)
         innerLayout.addWidget(self.rightButton,  1, 1)
+        innerLayout.addWidget(self.slider,       2, 0, 2, 2)
+
+        self.slider.valueChanged.connect(self.sliderValueChanged)
 
         self.setLayout(innerLayout)
 
+    def sliderValueChanged(self):
+        print("[*] Slider changed:", self.slider.value())
+        self.parent.clientHandle.setX(self.slider.value())
 
     def buttonPushed(self, button):
         print("%d PRESSED" % button)
