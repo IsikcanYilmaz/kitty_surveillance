@@ -7,7 +7,7 @@ from gui.custom_button import CustomButton
 
 from common import *
 
-NEED_UPDATE_AMOUNT = 20
+NEED_UPDATE_AMOUNT = 10
 
 class XYPadPanel(QtWidgets.QGroupBox):
     def __init__(self, parent):

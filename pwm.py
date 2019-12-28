@@ -68,7 +68,7 @@ class Motors():
         print("[PWM] SET ANGLE pin %d to %d (%f)" % (pin, angle, duty))
         GPIO.output(pin, True)
         pwm.ChangeDutyCycle(duty)
-        time.sleep(0.25) # TODO VARIABLE SLEEP TIME
+        time.sleep(0.3) # TODO VARIABLE SLEEP TIME
         GPIO.output(pin, False)
         pwm.ChangeDutyCycle(0)
 

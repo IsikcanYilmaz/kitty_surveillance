@@ -128,6 +128,7 @@ class KittyClient():
         self.clientRunning = False
         self.disconnect()
 
+    # TODO # PLEASE FOR THE LOVE OF GOD CLEAN THIS STUFF UP
     def setX(self, angle):
         self.cameraXfloat = angle
 

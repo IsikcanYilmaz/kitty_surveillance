@@ -23,6 +23,7 @@ class KittyServer():
         self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.videoServer.bind((ip, video_port))
 
+        # ServerRxThread and TxThread for the communication of commands, coordinates, etc.
         self.serverRxThread = threading.Thread(target=self.ServerRxThread)
         self.serverTxThread = threading.Thread(target=self.ServerTxThread)
 
