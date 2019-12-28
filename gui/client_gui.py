@@ -4,6 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget
 from gui.button_panel import *
 from gui.video_panel import *
+from gui.xy_pad_panel import *
 
 
 class MainWindow(QWidget):
@@ -20,17 +21,24 @@ class MainWindow(QWidget):
         #INSTANTIATE PANELS
         self.buttonPanel = ButtonPanel(self)
         self.videoPanel  = VideoPanel(self)
+        self.xyPadPanel   = XYPadPanel(self)
 
         #CREATE MAIN LAYOUT AND PUT IN PANELS
         mainLayout = QtWidgets.QGridLayout()
         mainLayout.addWidget(self.videoPanel)
-        mainLayout.addWidget(self.buttonPanel)
+        #mainLayout.addWidget(self.buttonPanel)
+        mainLayout.addWidget(self.xyPadPanel)
         self.setLayout(mainLayout)
 
     def keyPressEvent(self, keyEvent):
         super(MainWindow, self).keyPressEvent(keyEvent)
         print(keyEvent)
 
+    def updateGuiX(self):
+        pass
+
+    def updateGuiY(self):
+        pass
 
 
 

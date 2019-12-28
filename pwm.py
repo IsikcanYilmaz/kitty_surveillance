@@ -65,10 +65,10 @@ class Motors():
 
     def setAngle(self, pwm, pin, angle):
         duty = angleToPwm(angle)
-        print("SET ANGLE %d->%d (%f)" % (pin, angle, duty))
+        print("[PWM] SET ANGLE pin %d to %d (%f)" % (pin, angle, duty))
         GPIO.output(pin, True)
         pwm.ChangeDutyCycle(duty)
-        time.sleep(0.3) # TODO VARIABLE SLEEP TIME
+        time.sleep(0.25) # TODO VARIABLE SLEEP TIME
         GPIO.output(pin, False)
         pwm.ChangeDutyCycle(0)
 
@@ -83,16 +83,16 @@ class Motors():
             motor_str = "Y"
             pin_index = PWM1_INDEX
         else:
-            print("[!] INCORRECT PIN.")
+            print("[PWM !] INCORRECT PIN.")
             return
-        print("[*] Thread for motor %s created." % (motor_str))
+        print("[PWM] Thread for motor %s created." % (motor_str))
         runningFlags[pin_index] = True
         while runningFlags[pin_index]:
             valChangedEvents[pin_index].wait()
-            print("[*] Setting %s to %d degrees" % (motor_str, targets[pin_index]), targets, runningFlags)
+            print("[PWM] Setting %s to %d degrees" % (motor_str, targets[pin_index]), targets, runningFlags)
             self.setAngle(self.pwmObjects[pin_index], pin, targets[pin_index])
             valChangedEvents[pin_index].clear()
-        print("[*] Thread %s exiting." % (motor_str))
+        print("[PWM] Thread %s exiting." % (motor_str))
 
     def setX(self, x):
         self.targetXval = angleToPwm(x)

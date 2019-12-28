@@ -150,6 +150,23 @@ class KittyClient():
             self.cameraYfloat = 0
         print(self.cameraYfloat)
 
+    def updateX(self, x):
+        self.cameraXfloat = x
+        if self.cameraXfloat > 180:
+            self.cameraXfloat = 180
+        if self.cameraXfloat < 0:
+            self.cameraXfloat = 0
+        print("SETTING CLIENT X TO", self.cameraXfloat)
+
+    def updateY(self, y):
+        self.cameraYfloat = y
+        if self.cameraYfloat > 180:
+            self.cameraYfloat = 180
+        if self.cameraYfloat < 0:
+            self.cameraYfloat = 0
+        print("SETTING CLIENT Y TO", self.cameraYfloat)
+
+
     def startClient(self):
         self.clientRunning = True
         self.videoThread.start()
@@ -164,7 +181,8 @@ def main():
     parser.add_argument('--camera_only', dest='camera_only', action='store_true', default=False, help='DEBUG only run the camera server')
 
     args = parser.parse_args()
-    print(args.gui_only)
+    if (args.gui_only):
+        print("GUI ONLY")
 
     client = KittyClient()
 
