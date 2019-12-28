@@ -1,13 +1,13 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPainter, QBrush, QPen
 from PyQt5.QtCore import pyqtSlot, Qt
 
 from gui.custom_button import CustomButton
 
 from common import *
 
-NEED_UPDATE_AMOUNT = 5
+NEED_UPDATE_AMOUNT = 20
 
 class XYPadPanel(QtWidgets.QGroupBox):
     def __init__(self, parent):
@@ -58,6 +58,12 @@ class XYPad(QtWidgets.QFrame):
         print("Mouse Released")
         self.pressed = False
 
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setPen(QPen(Qt.black,  8, Qt.SolidLine))
+        painter.setBrush(QBrush(Qt.red, Qt.SolidPattern))
+        painter.drawEllipse(self.x, self.y, 5, 5)
+
     def updatePressedLocation(self, event):
         x = event.x()
         y = event.y()
@@ -75,6 +81,7 @@ class XYPad(QtWidgets.QFrame):
             self.x = x
             self.y = y
             self.printLocation()
+            self.repaint()
 
     def printLocation(self):
         print("Pad x %d, y %d (scaled x %d, y %d)" % (self.x, self.y, self.xScaled, self.yScaled))
