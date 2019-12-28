@@ -12,6 +12,8 @@ from common import *
 
 BUFFER_SIZE = 20
 
+VIDEO_OVER_UDP = False
+
 class KittyServer():
     def __init__(self, ip, video_port, comms_port):
         self.ip = ip
@@ -20,7 +22,12 @@ class KittyServer():
 
         self.commsServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsServer.bind((ip, comms_port))
-        self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        if (VIDEO_OVER_UDP):
+            self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        else:
+            self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         self.videoServer.bind((ip, video_port))
 
         # ServerRxThread and TxThread for the communication of commands, coordinates, etc.
@@ -61,19 +68,24 @@ class KittyServer():
         # TODO # add security measures before opening up video server
 
         print("[+] Waiting for connection on port %d" % (self.video_port))
-        self.videoServer.listen(1)
-        (conn, (ip, port)) = self.videoServer.accept()
-        print("[+] Video port connection established with %s" % ip)
-        self.connectionEstablished = True
-        self.clientConnection['running'] = True
 
-        # BOTH COMMS AND VIDEO CONNECTIONS ESTABLISHED AT THIS POINT
-        # GET FILE DESCRIPTOR OUT OF OUR CONNECTION SOCKET. WRITE VIDEO STREAM TO IT
-        self.videoClient = conn
-        self.videoClientFile = self.videoClient.makefile('wb')
+        # IF TCP:
+        if (VIDEO_OVER_UDP):
+            pass
+        else:
+            self.videoServer.listen(1)
+            (conn, (ip, port)) = self.videoServer.accept()
+            print("[+] Video port connection established with %s" % ip)
+            self.connectionEstablished = True
+            self.clientConnection['running'] = True
 
-        print("[+] Starting stream", self.videoClient, self.videoClientFile)
-        self.camera.startStream(self.videoClientFile)
+            # BOTH COMMS AND VIDEO CONNECTIONS ESTABLISHED AT THIS POINT
+            # GET FILE DESCRIPTOR OUT OF OUR CONNECTION SOCKET. WRITE VIDEO STREAM TO IT
+            self.videoClient = conn
+            self.videoClientFile = self.videoClient.makefile('wb')
+
+            print("[+] Starting stream", self.videoClient, self.videoClientFile)
+            self.camera.startStream(self.videoClientFile)
 
 
     def terminateConnection(self):
