@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import RPi.GPIO as GPIO
-from pwm_sweep import *
 import time, sys, os
 import threading
 
