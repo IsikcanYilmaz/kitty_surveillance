@@ -41,12 +41,12 @@
                  clientRxThread: receives comms packets from server instance.
                   - Fills the rxBuffer. raises input available flag when there is at
                   least 1 entire comms packet in the rxBuffer
+                 
                  clientTxThread: sends comms packets to server instance.
                   - Sends the bytes that are buffered in txBuffer, to the server instance.
 
                  guiThread: pyqt5 gui instance.
+                 
                  motors: class that controls the motors, driven by pwm
                   - setX(), setY() to move the camera
-                  - One thread that checks if the angle of the camera is the same 
-                  as the "target" angle. if not the same, increment current angle by
-                  GUI_INCREMENT_RATE.
+                  - 
