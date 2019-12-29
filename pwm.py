@@ -47,13 +47,14 @@ class Motors():
 
         self.threadRunningFlags = [self.threadXRunning, self.threadYRunning]
         self.threadXInstance = threading.Thread(target=self.pollThreadFn, args=[self.pwmX, self.threadRunningFlags, self.threadChangedEvents, self.targets, PWM0_PIN])
-        #self.threadYInstance = threading.Thread(target=self.threadY, args=[self.pwmY, self.yChanged, self.threadYRunning, PWM1_PIN])
+        self.threadYInstance = threading.Thread(target=self.pollThreadFn, args=[self.pwmY, self.threadRunningFlags, self.threadChangedEvents, self.targets, PWM1_PIN])
 
         #self.threadRunning = True
         #self.pwmPollThread = threading.Thread(target=self.pwmPoll)
         #self.pwmPollThread.start()
 
         self.threadXInstance.start()
+        self.threadYInstance.start()
 
     def pwmInit(self, pin):
         GPIO.setmode(GPIO.BCM)
@@ -103,6 +104,9 @@ class Motors():
     def setY(self, y):
         self.targetYval = angleToPwm(y)
         self.yChanged = True
+        self.targets[PWM1_INDEX] = y
+        self.yChanged = True
+        self.yChangedEvent.set()
         #print("[PWM] Setting Y to %d angles, pwm duty cycle to %f" % (y, self.targetYval))
 
     def deinit(self):

@@ -7,7 +7,8 @@ from gui.custom_button import CustomButton
 
 from common import *
 
-NEED_UPDATE_AMOUNT = 10
+NEED_UPDATE_AMOUNT_X = 10
+NEED_UPDATE_AMOUNT_Y = 5
 
 class XYPadPanel(QtWidgets.QGroupBox):
     def __init__(self, parent):
@@ -28,10 +29,10 @@ class XYPadPanel(QtWidgets.QGroupBox):
         return self.padFrame.y
 
     def getXscaled(self):
-        return self.padFrame.x * 180 / self.padFrame.width()
+        return self.padFrame.x * 180 / self.padFrame.width
 
     def getYscaled(self):
-        return self.padFrame.y * 180 / self.padFrame.height()
+        return self.padFrame.y * 180 / self.padFrame.height
 
 
 class XYPad(QtWidgets.QFrame):
@@ -45,6 +46,10 @@ class XYPad(QtWidgets.QFrame):
         self.yScaled = 0
         self.x = 0
         self.y = 0
+
+        self.height = 200
+        self.width = 200
+        self.setFixedSize(self.width, self.height)
 
     def mouseMoveEvent(self, event):
         self.updatePressedLocation(event)
@@ -61,19 +66,20 @@ class XYPad(QtWidgets.QFrame):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setPen(QPen(Qt.black,  8, Qt.SolidLine))
+        painter.drawRect(0, 0, self.width, self.height)
         painter.setBrush(QBrush(Qt.red, Qt.SolidPattern))
         painter.drawEllipse(self.x, self.y, 5, 5)
 
     def updatePressedLocation(self, event):
         x = event.x()
         y = event.y()
-        if (x >= 0 and x < self.width() and y >= 0 and y < self.height()):
-            xScaled = x * 180 / self.width()
-            yScaled = y * 180 / self.height()
-            if (abs(self.lastUpdatedXScaled - xScaled) > NEED_UPDATE_AMOUNT):
+        if (x >= 0 and x < self.width and y >= 0 and y < self.height):
+            xScaled = x * 180 / self.width
+            yScaled = y * 180 / self.height
+            if (abs(self.lastUpdatedXScaled - xScaled) > NEED_UPDATE_AMOUNT_X):
                 self.parent.parent.clientHandle.updateX(xScaled)
                 self.lastUpdatedXScaled = xScaled
-            if (abs(self.lastUpdatedYScaled - yScaled) > NEED_UPDATE_AMOUNT):
+            if (abs(self.lastUpdatedYScaled - yScaled) > NEED_UPDATE_AMOUNT_Y):
                 self.parent.parent.clientHandle.updateY(yScaled)
                 self.lastUpdatedYScaled = yScaled
             self.xScaled = xScaled
