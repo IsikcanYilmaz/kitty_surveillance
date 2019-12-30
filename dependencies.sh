@@ -12,5 +12,5 @@ sudo apt-get install pigpio
 pip3 install pigpio
 
 # Set up pigpiod service to be run on startup
-
-
+echo "[!] You may want to set up pigpiod to run at startup."
+echp "To do that, consider adding pigpiod to /etc/rc.local"
