@@ -17,10 +17,16 @@ TCP_PORT = 9999
 
 VLC = False
 
+
 class KittyClient():
     def __init__(self):
         # Initialize video and comms IP sockets
-        self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if (VIDEO_OVER_UDP):
+            print("[+] Video over UDP")
+            self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        else:
+            print("[+] Video over TCP")
+            self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.clientThread = threading.Thread(target=self.clientMainThread)
@@ -47,12 +53,18 @@ class KittyClient():
         self.txBufferPtr = 0
 
     def connect(self):
+        # FIRST CONNECT TO THE COMMS PORT
         self.commsClientSocket.connect((SERVER_IP_ADDR, COMMS_IP_PORT))
         # TODO # DO SECURITY HANDSHAKE
         time.sleep(2)
-        self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
+
+        # SET UP TCP/UDP CONNECTION
+        if (VIDEO_OVER_UDP):
+            print("[+] Client waiting for UDP video stream")
+        else:
+            self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
+            print("[+] Client connected to %s successfully" % SERVER_IP_ADDR)
         self.connected = True
-        print("[+] Client connected to %s successfully" % SERVER_IP_ADDR)
 
     def disconnect(self):
         self.commsClientSocket.close()
@@ -76,7 +88,12 @@ class KittyClient():
             print("[+] Video Connected! Stream to file:", (not VLC))
             buf = []
             while True:
-                data = self.videoClientSocket.recv(1024)
+                if (VIDEO_OVER_UDP):
+                    data, addr = self.videoClientSocket.recvfrom(1024)
+                    print(data, addr)
+                else:
+                    data = self.videoClientSocket.recv(1024)
+
                 if not data:
                     print("[!] Not data line 81")
                     break

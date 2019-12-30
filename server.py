@@ -3,6 +3,7 @@
 import socket
 import struct
 import threading
+import picamera
 import camera
 import time
 
@@ -12,7 +13,6 @@ from common import *
 
 BUFFER_SIZE = 20
 
-VIDEO_OVER_UDP = False
 
 class KittyServer():
     def __init__(self, ip, video_port, comms_port):
@@ -27,7 +27,6 @@ class KittyServer():
             self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         else:
             self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         self.videoServer.bind((ip, video_port))
 
         # ServerRxThread and TxThread for the communication of commands, coordinates, etc.
@@ -69,10 +68,14 @@ class KittyServer():
 
         print("[+] Waiting for connection on port %d" % (self.video_port))
 
-        # IF TCP:
-        if (VIDEO_OVER_UDP):
-            pass
-        else:
+        if (VIDEO_OVER_UDP): # IF UDP
+            stream = self.camera.getCircularBuffer()
+            self.camera.startStream(stream)
+            while True:
+                self.camera.cameraObj.wait_recording(1)
+                print("stream done")
+                print(stream.readall())
+        else:                # IF TCP
             self.videoServer.listen(1)
             (conn, (ip, port)) = self.videoServer.accept()
             print("[+] Video port connection established with %s" % ip)

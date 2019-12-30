@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from common import *
-from picamera import PiCamera
+import picamera
 import threading
 import io
 import time
@@ -9,7 +9,7 @@ import time
 
 class Camera:
     def __init__(self):
-        self.cameraObj = PiCamera()
+        self.cameraObj = picamera.PiCamera()
         self.cameraObj.resolution = (128, 128)
 
     # fd: file descriptor. can be a socket, or a file
@@ -19,6 +19,8 @@ class Camera:
     def stopStream(self):
         self.cameraObj.stop_recording()
 
+    def getCircularBuffer(self):
+        return picamera.PiCameraCircularIO(self.cameraObj, seconds = 20)
 
 def main():
     import socket
