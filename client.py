@@ -10,6 +10,7 @@ import argparse
 import subprocess
 
 from common import *
+from comms_packet_structure import *
 sys.path.append('gui')
 
 TCP_IP = '192.168.1.100'
@@ -137,7 +138,7 @@ class KittyClient():
                     self.cameraYfloat = 0
                 if (self.cameraYfloat > 255):
                     self.cameraYfloat = 255
-                self.commsClientSocket.send(struct.pack('II', int(self.cameraXfloat), int(self.cameraYfloat)))
+                self.commsClientSocket.send(struct.pack('III', CMD_CAMERA_ANGLE_CHANGED, int(self.cameraXfloat), int(self.cameraYfloat)))
             except Exception as e:
                 print("closing", e)
                 break;
