@@ -50,7 +50,7 @@ class KittyServer():
 
         self.cameraX = 45
         self.cameraY = 45
-        self.camera = camera.Camera()
+        self.camera = camera.Camera(512, 512)
 
         self.cameraMotors = Motors()
 

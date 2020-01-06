@@ -14,9 +14,6 @@ from debug import *
 from comms_packet_structure import CommsPacketType
 sys.path.append('gui')
 
-TCP_IP = '192.168.1.100'
-TCP_PORT = 9999
-
 VLC = False
 
 
@@ -31,10 +28,11 @@ class KittyClient():
             self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.clientThread = threading.Thread(target=self.clientMainThread)
-        self.videoThread  = threading.Thread(target=self.videoRxThread)
-        #self.rxThread     = threading.Thread(target=self.clientMainThread)
-        #self.txThread     = threading.Thread(target=self.clientMainThread)
+        self.cameraMotorThread = threading.Thread(target=self.clientCameraMotorThread)
+        self.videoThread       = threading.Thread(target=self.clientVideoRxThread)
+        self.commsRxThread     = threading.Thread(target=self.clientCommsRxThread)
+        #self.rxThread     = threading.Thread(target=self.clientCameraMotorThread)
+        #self.txThread     = threading.Thread(target=self.clientCameraMotorThread)
 
         self.connected = False
 
@@ -44,8 +42,6 @@ class KittyClient():
         self.txRunning     = False
         self.videoRxRunning = False
 
-        self.cameraX = 0
-        self.cameraY = 0
         self.cameraXfloat = 0
         self.cameraYfloat = 0
 
@@ -54,19 +50,47 @@ class KittyClient():
         self.rxBufferPtr = 0
         self.txBufferPtr = 0
 
-    def connect(self):
-        # FIRST CONNECT TO THE COMMS PORT
-        self.commsClientSocket.connect((SERVER_IP_ADDR, COMMS_IP_PORT))
-        # TODO # DO SECURITY HANDSHAKE
-        time.sleep(2)
+    # Wrapper for the debug print call, with the server module as argument
+    def PRINT(self, string, level=0):
+        debugPrint(string, DEBUG_MODULE_CLIENT, level)
 
+
+    def connect(self, commsOnly=False):
+        # FIRST CONNECT TO THE COMMS PORT
+        ret = self.connectComms()
+
+        # TODO # DO SECURITY HANDSHAKE
+
+        if (not commsOnly and ret):
+            ret = self.connectVideo()
+        return ret
+
+    def connectComms(self):
+        self.PRINT("Waiting for comms connection...")
+        try:
+            self.commsClientSocket.connect((SERVER_IP_ADDR, COMMS_IP_PORT))
+            self.connected = True
+            time.sleep(2)
+            return True
+        except Exception as e:
+            self.PRINT("Couldnt connect to comms server")
+            self.PRINT(e)
+            return False
+
+    def connectVideo(self):
         # SET UP TCP/UDP CONNECTION
         if (VIDEO_OVER_UDP):
-            print("[+] Client waiting for UDP video stream")
+            self.PRINT("Client waiting for UDP video stream")
         else:
-            self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
-            print("[+] Client connected to %s successfully" % SERVER_IP_ADDR)
-        self.connected = True
+            try:
+                self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
+                self.PRINT("Client connected to %s successfully" % (SERVER_IP_ADDR))
+                return True
+            except Exception as e:
+                self.PRINT("Couldnt connect to video server (TCP)")
+                self.PRINT(e)
+                return False
+
 
     def disconnect(self):
         self.commsClientSocket.close()
@@ -76,7 +100,7 @@ class KittyClient():
         self.guiRunning = True
         gui.client_gui.GuiThread(self)
 
-    def videoRxThread(self):
+    def clientVideoRxThread(self):
         self.videoRxRunning = True
         if (VLC):
             cmdline = ['vlc', '--demux', 'h264', '-']
@@ -87,7 +111,7 @@ class KittyClient():
         while self.videoRxRunning:
             while (not self.connected):
                 pass
-            print("[+] Video Connected! Stream to file:", (not VLC))
+            self.PRINT("Video Connected! Stream to file: %s" % (not VLC))
             buf = []
             while True:
                 if (VIDEO_OVER_UDP):
@@ -97,7 +121,7 @@ class KittyClient():
                     data = self.videoClientSocket.recv(1024)
 
                 if not data:
-                    print("[!] Not data line 81")
+                    self.PRINT("[!] Not data line 81")
                     break
                 else:
                     #print(data)
@@ -109,17 +133,17 @@ class KittyClient():
                 f.close()
 
             self.videoRxRunning = False
-            print("[+] Ending video stream")
+            self.PRINT("Ending video stream")
 
+    def clientCommsRxThread(self):
+        while True:
+            pass
 
+    def clientCommsTxThread(self):
+        while True:
+            pass
 
-    #def clientRxThread(self):
-    #    pass
-
-    #def clientTxThread(self):
-    #    pass
-
-    def clientMainThread(self):
+    def clientCameraMotorThread(self):
         while True:
             lastCameraX = self.cameraXfloat
             lastCameraY = self.cameraYfloat
@@ -141,7 +165,7 @@ class KittyClient():
                     self.cameraYfloat = 255
                 self.commsClientSocket.send(struct.pack('BBB', int(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value), int(self.cameraXfloat), int(self.cameraYfloat)))
             except Exception as e:
-                print("[!] clientMainThread closing", e)
+                print("[!] clientCameraMotorThread closing", e)
                 break;
             time.sleep(0.1)
 
@@ -188,10 +212,11 @@ class KittyClient():
         print("SETTING CLIENT Y TO", self.cameraYfloat)
 
 
+    # Starts the video thread and the motor thread. Client must have connected priorly
     def startClient(self):
         self.clientRunning = True
         self.videoThread.start()
-        self.clientThread.start()
+        self.cameraMotorThread.start()
         #self.rxThread.start()
         #self.txThread.start()
 
