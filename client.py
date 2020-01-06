@@ -10,7 +10,8 @@ import argparse
 import subprocess
 
 from common import *
-from comms_packet_structure import *
+from debug import *
+from comms_packet_structure import CommsPacketType
 sys.path.append('gui')
 
 TCP_IP = '192.168.1.100'
@@ -138,9 +139,9 @@ class KittyClient():
                     self.cameraYfloat = 0
                 if (self.cameraYfloat > 255):
                     self.cameraYfloat = 255
-                self.commsClientSocket.send(struct.pack('III', CMD_CAMERA_ANGLE_CHANGED, int(self.cameraXfloat), int(self.cameraYfloat)))
+                self.commsClientSocket.send(struct.pack('BBB', int(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value), int(self.cameraXfloat), int(self.cameraYfloat)))
             except Exception as e:
-                print("closing", e)
+                print("[!] clientMainThread closing", e)
                 break;
             time.sleep(0.1)
 
@@ -196,6 +197,7 @@ class KittyClient():
 
 
 def main():
+    print("K i t t y S u r v e i l l a n c e - Client - v%s" % (VERSION))
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--gui_only', dest='gui_only', action='store_true', default=False, help='DEBUG only show gui for test purposes')
     parser.add_argument('--camera_only', dest='camera_only', action='store_true', default=False, help='DEBUG only run the camera server')
