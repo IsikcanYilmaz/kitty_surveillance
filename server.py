@@ -95,6 +95,7 @@ class KittyServer():
         # TODO # add security measures before opening up video server
         # OR just have a better secure handshake here
 
+        self.startVideoConnection()
         return True
 
 
@@ -107,7 +108,7 @@ class KittyServer():
                 self.PRINT("stream done")
                 self.PRINT(stream.readall())
         else:                # IF TCP
-            self.PRINT("Waiting for connection on port %s:%d" % (self.ip, self.video_port))
+            self.PRINT("Waiting for video connection on port %s:%d" % (self.ip, self.video_port))
             self.videoServer.listen(1)
             (conn, (ip, port)) = self.videoServer.accept()
             self.PRINT("Video port connection established with %s" % ip)

@@ -11,23 +11,23 @@ class MainWindow(QWidget):
     def __init__(self, clientHandle):
         super(MainWindow, self).__init__()
         self.clientHandle = clientHandle
-        self.width = 300
-        self.height = 300
+        self.width = 600
+        self.height = 500
 
         #SET WINDOW GEOMETRY
-        self.setFixedSize(self.width, self.height)
+        #self.setFixedSize(self.width, self.height)
         self.setWindowTitle('Kitty Surveillance Client')
 
         #INSTANTIATE PANELS
         self.buttonPanel = ButtonPanel(self)
         self.videoPanel  = VideoPanel(self)
-        self.xyPadPanel   = XYPadPanel(self)
+        self.xyPadPanel  = XYPadPanel(self)
 
         #CREATE MAIN LAYOUT AND PUT IN PANELS
         mainLayout = QtWidgets.QGridLayout()
-        mainLayout.addWidget(self.videoPanel)
-        #mainLayout.addWidget(self.buttonPanel)
-        mainLayout.addWidget(self.xyPadPanel)
+        mainLayout.addWidget(self.videoPanel, 0, 0, 4, 4)
+        mainLayout.addWidget(self.buttonPanel,0, 4, 2, 2)
+        mainLayout.addWidget(self.xyPadPanel, 2, 4, 2, 2)
         self.setLayout(mainLayout)
 
     def keyPressEvent(self, keyEvent):
@@ -39,6 +39,10 @@ class MainWindow(QWidget):
 
     def updateGuiY(self):
         pass
+
+    def startVideo(self):
+        self.videoPanel.openFile("/home/jon/KODMOD/kitty_surveillance/teststream.h264")
+        self.videoPanel.play()
 
 
 

@@ -83,6 +83,7 @@ class KittyClient():
             self.PRINT("Client waiting for UDP video stream")
         else:
             try:
+                self.PRINT("Connecting to video server %s:%d" % (SERVER_IP_ADDR, VIDEO_IP_PORT))
                 self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
                 self.PRINT("Client connected to %s:%d successfully" % (SERVER_IP_ADDR, VIDEO_IP_PORT))
                 return True
