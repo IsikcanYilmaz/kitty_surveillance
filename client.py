@@ -84,7 +84,7 @@ class KittyClient():
         else:
             try:
                 self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
-                self.PRINT("Client connected to %s successfully" % (SERVER_IP_ADDR))
+                self.PRINT("Client connected to %s:%d successfully" % (SERVER_IP_ADDR, VIDEO_IP_PORT))
                 return True
             except Exception as e:
                 self.PRINT("Couldnt connect to video server (TCP)")

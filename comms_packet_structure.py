@@ -7,3 +7,8 @@ from enum import Enum, auto
 class CommsPacketType(Enum):
     CMD_INITIATE_VIDEO_SERVER = auto()
     CMD_CAMERA_ANGLE_CHANGED = auto()
+
+class CommsPacket():
+    def __init__(self, CommsPacketType):
+        pass
+

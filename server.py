@@ -72,7 +72,7 @@ class KittyServer():
             else:
                 pass
                 #self.PRINT("[!] No Data received.")
-                #self.terminateConnection() # This will have the thread complete
+                #self.terminateConnections() # This will have the thread complete
 
 
     def ServerTxThread(self):
@@ -93,10 +93,13 @@ class KittyServer():
                                 }
         self.PRINT("Comms port connection established with %s" % ip)
         # TODO # add security measures before opening up video server
+        # OR just have a better secure handshake here
 
-        self.PRINT("Waiting for connection on port %s:%d" % (self.ip, self.video_port))
+        return True
 
-        if (VIDEO_OVER_UDP): # IF UDP
+
+    def startVideoConnection(self, resolution=(128,128), udp=False):
+        if (udp): # IF UDP
             stream = self.camera.getCircularBuffer()
             self.camera.startStream(stream)
             while True:
@@ -104,9 +107,10 @@ class KittyServer():
                 self.PRINT("stream done")
                 self.PRINT(stream.readall())
         else:                # IF TCP
+            self.PRINT("Waiting for connection on port %s:%d" % (self.ip, self.video_port))
             self.videoServer.listen(1)
             (conn, (ip, port)) = self.videoServer.accept()
-            self.PRINT("[SER] Video port connection established with %s" % ip)
+            self.PRINT("Video port connection established with %s" % ip)
             self.connectionEstablished = True
             self.clientConnection['running'] = True
 
@@ -115,11 +119,12 @@ class KittyServer():
             self.videoClient = conn
             self.videoClientFile = self.videoClient.makefile('wb')
 
-            self.PRINT("Starting stream to %s", ip)
+            self.PRINT("Starting stream to %s" % ip)
             self.camera.startStream(self.videoClientFile)
 
+
     # Terminate and close everything related to both VIDEO and COMMS connections/sockets
-    def terminateConnection(self):
+    def terminateConnections(self):
         if (self.clientConnection['commsConn'] != None):
             self.clientConnection['commsConn'].close()
             self.clientConnection['commsConn'] = None
@@ -167,8 +172,14 @@ class KittyServer():
         # MAIN LOOP
         while self.running:
             self.initialize()
-            self.connectionSequence()
+            if (not self.connectionSequence()):
+                self.PRINT("[!] Connection sequence failed.")
+                self.deinitialize() # TODO make this prettier. we dont heed to deinit every time conn sequence fails
+                continue
+
+            # Start comms threads
             self.serverRxThread.start()
+            #self.serverTxThread.start()
 
             # Wait while we're connected to a client.
             while self.clientConnection:
