@@ -14,6 +14,7 @@ from debug import *
 from comms_packet_structure import CommsPacketType
 
 BUFFER_SIZE = 20
+BUFFER_FILENAME = 'buffer.h264'
 
 class KittyServer():
     def __init__(self, ip, video_port, comms_port):
@@ -35,22 +36,23 @@ class KittyServer():
         self.commsServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsServer.bind((self.ip, self.comms_port))
 
-        if (VIDEO_OVER_UDP):
-            self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        else:
-            self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.videoServer.bind((self.ip, self.video_port))
+        # if (VIDEO_OVER_UDP):
+            # self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # else:
+            # self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.videoServer.bind((self.ip, self.video_port))
 
         # ServerRxThread and TxThread for the communication of commands, coordinates, etc.
         self.serverRxThread = threading.Thread(target=self.ServerRxThread)
         self.serverTxThread = threading.Thread(target=self.ServerTxThread)
 
         self.connectionEstablished = False
+        self.recordingOn = False
         self.clientConnection = {}
 
         self.cameraX = 45
         self.cameraY = 45
-        self.camera = camera.Camera(512, 512)
+        self.camera = None # TODO
 
         self.cameraMotors = Motors()
 
@@ -73,6 +75,7 @@ class KittyServer():
                 pass
                 #self.PRINT("[!] No Data received.")
                 #self.terminateConnections() # This will have the thread complete
+        self.PRINT("Server Rx thread ending")
 
 
     def ServerTxThread(self):
@@ -92,36 +95,11 @@ class KittyServer():
                                 "running"  : False
                                 }
         self.PRINT("Comms port connection established with %s" % ip)
+        self.connectionEstablished = True
         # TODO # add security measures before opening up video server
         # OR just have a better secure handshake here
 
-        self.startVideoConnection()
         return True
-
-
-    def startVideoConnection(self, resolution=(128,128), udp=False):
-        if (udp): # IF UDP
-            stream = self.camera.getCircularBuffer()
-            self.camera.startStream(stream)
-            while True:
-                self.camera.cameraObj.wait_recording(1)
-                self.PRINT("stream done")
-                self.PRINT(stream.readall())
-        else:                # IF TCP
-            self.PRINT("Waiting for video connection on port %s:%d" % (self.ip, self.video_port))
-            self.videoServer.listen(1)
-            (conn, (ip, port)) = self.videoServer.accept()
-            self.PRINT("Video port connection established with %s" % ip)
-            self.connectionEstablished = True
-            self.clientConnection['running'] = True
-
-            # BOTH COMMS AND VIDEO CONNECTIONS ESTABLISHED AT THIS POINT
-            # GET FILE DESCRIPTOR OUT OF OUR CONNECTION SOCKET. WRITE VIDEO STREAM TO IT
-            self.videoClient = conn
-            self.videoClientFile = self.videoClient.makefile('wb')
-
-            self.PRINT("Starting stream to %s" % ip)
-            self.camera.startStream(self.videoClientFile)
 
 
     # Terminate and close everything related to both VIDEO and COMMS connections/sockets
@@ -146,7 +124,11 @@ class KittyServer():
         self.PRINT("Data received: %s. input type: %d" % (bytearray(data), inputType))
 
         if (inputType == CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value):
-            unpackedData = struct.unpack('BBB', data)[1:]
+            try:
+                unpackedData = struct.unpack('BBB', data)[1:]
+            except Exception as e:
+                print(e)
+                print(data)
             newX = unpackedData[0]
             newY = unpackedData[1]
 
@@ -164,6 +146,15 @@ class KittyServer():
             self.cameraMotors.setY(newY)
             self.PRINT("NEW X: %d, NEW Y: %d" % (newX, newY))
 
+        if (inputType == CommsPacketType.CMD_START_RECORDING_VIDEO.value):
+            pass
+
+        if (inputType == CommsPacketType.CMD_STOP_RECORDING_VIDEO.value):
+            pass
+
+        if (inputType == CommsPacketType.CMD_INITIATE_VIDEO_SERVER.value):
+            pass
+
     # Main loop of the server program. The class itself doesnt jump to this function
     def run(self):
         self.running = True
@@ -180,7 +171,7 @@ class KittyServer():
 
             # Start comms threads
             self.serverRxThread.start()
-            #self.serverTxThread.start()
+            #self.serverTxThread.start() # TODO # Eventually implement tx stuff
 
             # Wait while we're connected to a client.
             while self.clientConnection:

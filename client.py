@@ -112,6 +112,7 @@ class KittyClient():
         while self.videoRxRunning:
             while (not self.connected):
                 pass
+
             self.PRINT("Video Connected! Stream to file: %s" % (not VLC))
             buf = []
             while True:
@@ -145,6 +146,7 @@ class KittyClient():
             pass
 
     def clientCameraMotorThread(self):
+        print("[*] clientCameraMotorThread starting")
         while True:
             lastCameraX = self.cameraXfloat
             lastCameraY = self.cameraYfloat
@@ -216,7 +218,7 @@ class KittyClient():
     # Starts the video thread and the motor thread. Client must have connected priorly
     def startClient(self):
         self.clientRunning = True
-        self.videoThread.start()
+        #self.videoThread.start()
         self.cameraMotorThread.start()
         #self.rxThread.start()
         #self.txThread.start()
@@ -235,7 +237,7 @@ def main():
     client = KittyClient()
 
     if (not args.gui_only):
-        client.connect()
+        client.connect(commsOnly=True)
         client.startClient()
     client.startGui()
 
