@@ -22,7 +22,6 @@ class KittyServer():
         self.video_port = video_port
         self.comms_port = comms_port
         self.running = False
-        #self.initialize()
 
     # Wrapper for the debug print call, with the server module as argument
     def PRINT(self, string, level=0):
@@ -35,12 +34,6 @@ class KittyServer():
     def initialize(self):
         self.commsServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsServer.bind((self.ip, self.comms_port))
-
-        # if (VIDEO_OVER_UDP):
-            # self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # else:
-            # self.videoServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.videoServer.bind((self.ip, self.video_port))
 
         # ServerRxThread and TxThread for the communication of commands, coordinates, etc.
         self.serverRxThread = threading.Thread(target=self.ServerRxThread)

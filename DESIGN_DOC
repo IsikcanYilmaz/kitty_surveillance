@@ -14,7 +14,6 @@
 ### DATA TRANSFER/HANDLING
 
         [ Pi ] <-------------> [ Client ]
-  Video Stream -------------->  TCP (port 9999)
   Misc. Comms  <------------->  TCP (port 9998)
   | 
   |_Rx Thread  <--------------  Tx Thread
