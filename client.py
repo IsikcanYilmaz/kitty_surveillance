@@ -11,7 +11,7 @@ import subprocess
 
 from common import *
 from debug import *
-from comms_packet_structure import CommsPacketType
+from comms_packet_structure import *
 sys.path.append('gui')
 
 VLC = False
@@ -19,17 +19,9 @@ VLC = False
 
 class KittyClient():
     def __init__(self):
-        # Initialize video and comms IP sockets
-        if (VIDEO_OVER_UDP):
-            print("[+] Video over UDP")
-            self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        else:
-            print("[+] Video over TCP")
-            self.videoClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.commsClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.cameraMotorThread = threading.Thread(target=self.clientCameraMotorThread)
-        self.videoThread       = threading.Thread(target=self.clientVideoRxThread)
         self.commsRxThread     = threading.Thread(target=self.clientCommsRxThread)
         #self.rxThread     = threading.Thread(target=self.clientCameraMotorThread)
         #self.txThread     = threading.Thread(target=self.clientCameraMotorThread)
@@ -40,7 +32,6 @@ class KittyClient():
         self.guiRunning    = False
         self.rxRunning     = False
         self.txRunning     = False
-        self.videoRxRunning = False
 
         self.cameraXfloat = 0
         self.cameraYfloat = 0
@@ -61,8 +52,6 @@ class KittyClient():
 
         # TODO # DO SECURITY HANDSHAKE
 
-        if (not commsOnly and ret):
-            ret = self.connectVideo()
         return ret
 
     def connectComms(self):
@@ -77,65 +66,12 @@ class KittyClient():
             self.PRINT(e)
             return False
 
-    def connectVideo(self):
-        # SET UP TCP/UDP CONNECTION
-        if (VIDEO_OVER_UDP):
-            self.PRINT("Client waiting for UDP video stream")
-        else:
-            try:
-                self.PRINT("Connecting to video server %s:%d" % (SERVER_IP_ADDR, VIDEO_IP_PORT))
-                self.videoClientSocket.connect((SERVER_IP_ADDR, VIDEO_IP_PORT))
-                self.PRINT("Client connected to %s:%d successfully" % (SERVER_IP_ADDR, VIDEO_IP_PORT))
-                return True
-            except Exception as e:
-                self.PRINT("Couldnt connect to video server (TCP)")
-                self.PRINT(e)
-                return False
-
-
     def disconnect(self):
         self.commsClientSocket.close()
-        self.videoClientSocket.close()
 
     def startGui(self):
         self.guiRunning = True
         gui.client_gui.GuiThread(self)
-
-    def clientVideoRxThread(self):
-        self.videoRxRunning = True
-        if (VLC):
-            cmdline = ['vlc', '--demux', 'h264', '-']
-            player = subprocess.Popen(cmdline, stdin=subprocess.PIPE)
-        else:
-            f = open("teststream.h264", "wb")
-
-        while self.videoRxRunning:
-            while (not self.connected):
-                pass
-
-            self.PRINT("Video Connected! Stream to file: %s" % (not VLC))
-            buf = []
-            while True:
-                if (VIDEO_OVER_UDP):
-                    data, addr = self.videoClientSocket.recvfrom(1024)
-                    print(data, addr)
-                else:
-                    data = self.videoClientSocket.recv(1024)
-
-                if not data:
-                    self.PRINT("[!] Not data line 81")
-                    break
-                else:
-                    #print(data)
-                    if (VLC):
-                        player.stdin.write(data)
-                    else:
-                        f.write(data)
-            if (not VLC):
-                f.close()
-
-            self.videoRxRunning = False
-            self.PRINT("Ending video stream")
 
     def clientCommsRxThread(self):
         while True:
@@ -166,10 +102,13 @@ class KittyClient():
                     self.cameraYfloat = 0
                 if (self.cameraYfloat > 255):
                     self.cameraYfloat = 255
-                self.commsClientSocket.send(struct.pack('BBB', int(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value), int(self.cameraXfloat), int(self.cameraYfloat)))
+                rawPacket = MakeCommsPacket(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value, [int(self.cameraXfloat), int(self.cameraYfloat)])
+                print("[*] Sending raw", [hex(i) for i in rawPacket])
+                self.commsClientSocket.send(rawPacket) 
+
             except Exception as e:
                 print("[!] clientCameraMotorThread closing", e)
-                break;
+                break
             time.sleep(0.1)
 
         self.clientRunning = False
@@ -215,10 +154,9 @@ class KittyClient():
         print("SETTING CLIENT Y TO", self.cameraYfloat)
 
 
-    # Starts the video thread and the motor thread. Client must have connected priorly
+    # Starts the motor thread. Client must have connected priorly
     def startClient(self):
         self.clientRunning = True
-        #self.videoThread.start()
         self.cameraMotorThread.start()
         #self.rxThread.start()
         #self.txThread.start()

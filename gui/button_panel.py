@@ -47,10 +47,6 @@ class ButtonPanel(QtWidgets.QGroupBox):
 
         self.setLayout(innerLayout)
 
-    def sliderValueChanged(self):
-        print("[*] Slider changed:", self.slider.value())
-        self.parent.clientHandle.setX(self.slider.value())
-
     def buttonPushed(self, button):
         print("%d PRESSED" % button)
         if button == LEFT_PRESS:

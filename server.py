@@ -11,7 +11,7 @@ import time
 from pwm import Motors
 from common import *
 from debug import *
-from comms_packet_structure import CommsPacketType
+from comms_packet_structure import *
 
 BUFFER_SIZE = 20
 BUFFER_FILENAME = 'buffer.h264'
@@ -59,14 +59,20 @@ class KittyServer():
     # TODO: Currently there's one size in receiving. have this
     def ServerRxThread(self):
         self.PRINT("Server Rx thread started")
+        rxBuf = []
         while (self.connectionEstablished):
             try:
-                rxData = self.clientConnection['commsConn'].recv(2 * 4)
-                if (rxData):
-                    self.processInput(rxData)
-                else:
-                    self.PRINT("[!] No Data received.")
-                    self.terminateConnections() # This will have the thread complete
+                rxData = self.clientConnection['commsConn'].recv(4)
+                rxBuf.extend(rxData)
+                print([hex(i) for i in rxData], rxData == [], len(rxData))
+                # If we received the magic number, we can assume we have 
+                # a full packet in our hands. process it.
+                if (rxData == bytes(COMMS_PACKET_MAGIC)):
+                    self.processInput(rxBuf)
+                    rxBuf = []
+                if (rxData == None or rxData == [] or len(rxData) == 0):
+                    print("[!] rxData == None. Terminating connection")
+                    self.terminateConnections()
             except Exception as e:
                 print("[!] ERROR!")
                 print(e)
@@ -112,17 +118,18 @@ class KittyServer():
     # Process commands received from the COMMS_CONNECTION
     # Packet types defined in comms_packet_structure.py
     def processInput(self, data):
-        inputType = data[0]
-        self.PRINT("Data received: %s. input type: %d" % (bytearray(data), inputType))
-
-        if (inputType == CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value):
+        decodedPacket = DecodeRawCommsPacket(bytes(data))
+        print('[*] Processed packet: ', decodedPacket)
+        if (decodedPacket['cmd_id'] == CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value):
+            payload = decodedPacket['payload'][0:2] # rest of the bytes are padding bytes
             try:
-                unpackedData = struct.unpack('BBB', data)[1:]
+                newX, newY = struct.unpack('BB', payload)
             except Exception as e:
                 print(e)
                 print(data)
-            newX = unpackedData[0]
-            newY = unpackedData[1]
+                return
+            
+            print("[*] CAMERA ANGLE CHANGED.", newX, newY)
 
             if (newX < 0):
                 newX = 0
@@ -138,13 +145,13 @@ class KittyServer():
             self.motors.setY(newY)
             self.PRINT("NEW X: %d, NEW Y: %d" % (newX, newY))
 
-        if (inputType == CommsPacketType.CMD_START_RECORDING_VIDEO.value):
+        if (decodedPacket['cmd_id'] == CommsPacketType.CMD_START_RECORDING_VIDEO.value):
             pass
 
-        if (inputType == CommsPacketType.CMD_STOP_RECORDING_VIDEO.value):
+        if (decodedPacket['cmd_id'] == CommsPacketType.CMD_STOP_RECORDING_VIDEO.value):
             pass
 
-        if (inputType == CommsPacketType.CMD_INITIATE_VIDEO_SERVER.value):
+        if (decodedPacket['cmd_id'] == CommsPacketType.CMD_INITIATE_VIDEO_SERVER.value):
             pass
 
     # Main loop of the server program. The class itself doesnt jump to this function

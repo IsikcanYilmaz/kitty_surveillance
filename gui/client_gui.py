@@ -32,17 +32,6 @@ class MainWindow(QWidget):
         super(MainWindow, self).keyPressEvent(keyEvent)
         print(keyEvent)
 
-    def updateGuiX(self):
-        pass
-
-    def updateGuiY(self):
-        pass
-
-    def startVideo(self):
-        self.videoPanel.openFile("/home/jon/KODMOD/kitty_surveillance/teststream.h264")
-        self.videoPanel.play()
-
-
 
 def GuiThread(clientHandle):
     app = QApplication(sys.argv)

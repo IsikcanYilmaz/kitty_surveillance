@@ -16,14 +16,17 @@ class CommsPacketType(Enum):
     CMD_MAX                   = 1024
 
 def MakeCommsPacket(cmd_id, payload):
-    rawPacket = [*COMMS_PACKET_HEADER, *struct.pack('>H', cmd_id), *struct.pack('>H', len(payload)), *payload, *COMMS_PACKET_MAGIC]
+    # Payload size will be a factor of 4 always.
+    while (len(payload) % 4 != 0):
+        payload.append(0)
+    rawPacket = [*COMMS_PACKET_HEADER, cmd_id, *struct.pack('>H', len(payload)), *payload, *COMMS_PACKET_MAGIC]
     return bytes(rawPacket)
 
 def DecodeRawCommsPacket(rawPacket):
     error = 0
     try:
-        header, cmd_id, payloadLen = struct.unpack('>cHH', rawPacket[0:5])
-        payload = rawPacket[5:5+payloadLen]
+        header, cmd_id, payloadLen = struct.unpack('>ccH', rawPacket[0:4])
+        payload = rawPacket[4:4+payloadLen]
         magic = rawPacket[-len(COMMS_PACKET_MAGIC):]
         if (header != bytes(COMMS_PACKET_HEADER) or magic != bytes(COMMS_PACKET_MAGIC)):
             print("[!] Error in header or magic number of the packet header,magic " , header, [hex(i ) for i in magic])
@@ -33,12 +36,5 @@ def DecodeRawCommsPacket(rawPacket):
         cmd_id = None
         payload = None
         error = 1
-    return {'cmd_id':cmd_id, 'payload':payload, 'error':error}
-
-# test code
-if __name__ == "__main__":
-    a = MakeCommsPacket(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value, [1,2,3,4,5,6,5,4,3,2])
-    print([hex(i) for i in a])
-    DecodeRawCommsPacket(a)
-
+    return {'cmd_id':struct.unpack('B', cmd_id)[0], 'payload':payload, 'error':error}
 
