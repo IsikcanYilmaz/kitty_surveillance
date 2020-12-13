@@ -20,12 +20,10 @@ class MainWindow(QWidget):
 
         #INSTANTIATE PANELS
         self.buttonPanel = ButtonPanel(self)
-        # self.videoPanel  = VideoPanel(self)
         self.xyPadPanel  = XYPadPanel(self)
 
         #CREATE MAIN LAYOUT AND PUT IN PANELS
         mainLayout = QtWidgets.QGridLayout()
-        # mainLayout.addWidget(self.videoPanel, 0, 0, 4, 4)
         mainLayout.addWidget(self.buttonPanel)
         mainLayout.addWidget(self.xyPadPanel)
         self.setLayout(mainLayout)

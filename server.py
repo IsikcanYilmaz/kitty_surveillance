@@ -40,34 +40,38 @@ class KittyServer():
         self.serverTxThread = threading.Thread(target=self.ServerTxThread)
 
         self.connectionEstablished = False
-        self.recordingOn = False
         self.clientConnection = {}
 
         self.cameraX = 45
         self.cameraY = 45
         self.camera = None # TODO
 
-        self.cameraMotors = Motors()
+        self.motors = Motors()
 
     # Joins threads, destroys camera and motor objects. Add anything else if you think of any
     def deinitialize(self):
         self.serverRxThread.join()
         self.serverTxThread.join()
         del(self.camera)
-        del(self.cameraMotors)
+        del(self.motors)
 
     # This thread continuously receives data, passes to processInput
     # TODO: Currently there's one size in receiving. have this
     def ServerRxThread(self):
         self.PRINT("Server Rx thread started")
         while (self.connectionEstablished):
-            rxData = self.clientConnection['commsConn'].recv(2 * 4)
-            if (rxData):
-                self.processInput(rxData)
-            else:
-                pass
-                #self.PRINT("[!] No Data received.")
-                #self.terminateConnections() # This will have the thread complete
+            try:
+                rxData = self.clientConnection['commsConn'].recv(2 * 4)
+                if (rxData):
+                    self.processInput(rxData)
+                else:
+                    self.PRINT("[!] No Data received.")
+                    self.terminateConnections() # This will have the thread complete
+            except Exception as e:
+                print("[!] ERROR!")
+                print(e)
+                print("[!] TERMINATING CONNECTION")
+                self.terminateConnections()
         self.PRINT("Server Rx thread ending")
 
 
@@ -100,12 +104,7 @@ class KittyServer():
         if (self.clientConnection['commsConn'] != None):
             self.clientConnection['commsConn'].close()
             self.clientConnection['commsConn'] = None
-        if (VIDEO_OVER_UDP):
-            pass # TODO VIDEO_OVER_UDP
-        else:
-            if (self.clientConnection['videoConn'] != None):
-                self.clientConnection['videoConn'].close()
-                self.clientConnection['videioConn'] = None
+
         self.clientConnection['running'] = False
         self.connectionEstablished = False
         self.PRINT('Connection with %s terminated' % self.clientConnection['ip'])
@@ -135,8 +134,8 @@ class KittyServer():
             elif (newY > 180):
                 newY = 180
 
-            self.cameraMotors.setX(newX)
-            self.cameraMotors.setY(newY)
+            self.motors.setX(newX)
+            self.motors.setY(newY)
             self.PRINT("NEW X: %d, NEW Y: %d" % (newX, newY))
 
         if (inputType == CommsPacketType.CMD_START_RECORDING_VIDEO.value):
