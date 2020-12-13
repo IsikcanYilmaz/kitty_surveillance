@@ -23,7 +23,7 @@ fi
 SRC="$HOME/kitty_surveillance_media" # Host
 DST="/home/$DST_NAME/kitty_surveillance_media/*" # Pi
 
-rsync -avz -e ssh $DST_NAME"@"$DST_ADDR:$DST $SRC # Pi to Host. Copy over contents of kitty_surveillance_media
+rsync --remove-source-files -avz -e ssh $DST_NAME"@"$DST_ADDR:$DST $SRC # Pi to Host. Copy over contents of kitty_surveillance_media
 
 SRC="$HOME/KODMOD/kitty_surveillance/*" # Host
 DST="/home/$DST_NAME/kitty_surveillance/" # Pi

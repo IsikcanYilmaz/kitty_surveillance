@@ -29,21 +29,21 @@ class ButtonPanel(QtWidgets.QGroupBox):
         self.upButton.clicked.connect(lambda: self.buttonPushed(UP_PRESS))
         self.downButton.clicked.connect(lambda: self.buttonPushed(DOWN_PRESS))
 
-        self.videoTestButton = CustomButton("Video Test")
-        self.videoTestButton.clicked.connect(lambda: self.parent.startVideo())
+        # self.videoTestButton = CustomButton("Video Test")
+        # self.videoTestButton.clicked.connect(lambda: self.parent.startVideo())
 
-        self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
-        self.slider.setMinimum = 0
-        self.slider.setMaximum = 180
+        # self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
+        # self.slider.setMinimum = 0
+        # self.slider.setMaximum = 180
 
         innerLayout.addWidget(self.upButton,     0, 0)
         innerLayout.addWidget(self.downButton,   0, 1)
         innerLayout.addWidget(self.leftButton,   1, 0)
         innerLayout.addWidget(self.rightButton,  1, 1)
-        innerLayout.addWidget(self.slider,       2, 0, 2, 2)
-        innerLayout.addWidget(self.videoTestButton, 3, 0)
+        # innerLayout.addWidget(self.slider,       2, 0, 2, 2)
+        # innerLayout.addWidget(self.videoTestButton, 3, 0)
 
-        self.slider.valueChanged.connect(self.sliderValueChanged)
+        # self.slider.valueChanged.connect(self.sliderValueChanged)
 
         self.setLayout(innerLayout)
 
