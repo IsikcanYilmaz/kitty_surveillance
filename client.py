@@ -114,46 +114,6 @@ class KittyClient():
         self.clientRunning = False
         self.disconnect()
 
-    # TODO # PLEASE FOR THE LOVE OF GOD CLEAN THIS STUFF UP
-    def setX(self, angle):
-        self.cameraXfloat = angle
-
-    def setY(self, angle):
-        self.cameraYfloat = angle
-
-    def moveX(self, rate):
-        self.cameraXfloat += rate
-        if self.cameraXfloat > 180:
-            self.cameraXfloat = 180
-        if self.cameraXfloat < 0:
-            self.cameraXfloat = 0
-        print(self.cameraXfloat)
-
-    def moveY(self, rate):
-        self.cameraYfloat += rate
-        if self.cameraYfloat > 180:
-            self.cameraYfloat = 180
-        if self.cameraYfloat < 0:
-            self.cameraYfloat = 0
-        print(self.cameraYfloat)
-
-    def updateX(self, x):
-        self.cameraXfloat = x
-        if self.cameraXfloat > 180:
-            self.cameraXfloat = 180
-        if self.cameraXfloat < 0:
-            self.cameraXfloat = 0
-        print("SETTING CLIENT X TO", self.cameraXfloat)
-
-    def updateY(self, y):
-        self.cameraYfloat = y
-        if self.cameraYfloat > 180:
-            self.cameraYfloat = 180
-        if self.cameraYfloat < 0:
-            self.cameraYfloat = 0
-        print("SETTING CLIENT Y TO", self.cameraYfloat)
-
-
     # Starts the motor thread. Client must have connected priorly
     def startClient(self):
         self.clientRunning = True

@@ -17,9 +17,8 @@ BUFFER_SIZE = 20
 BUFFER_FILENAME = 'buffer.h264'
 
 class KittyServer():
-    def __init__(self, ip, video_port, comms_port):
+    def __init__(self, ip, comms_port):
         self.ip = ip
-        self.video_port = video_port
         self.comms_port = comms_port
         self.running = False
 
@@ -187,7 +186,7 @@ class KittyServer():
 
 def main():
     print("K i t t y S u r v e i l l a n c e - Server - v%s" % (VERSION))
-    server = KittyServer(SERVER_IP_ADDR, VIDEO_IP_PORT, COMMS_IP_PORT)
+    server = KittyServer(SERVER_IP_ADDR, COMMS_IP_PORT)
     server.run()
 
 if __name__ == '__main__':
