@@ -103,7 +103,7 @@ class KittyClient():
                 if (self.cameraYfloat > 255):
                     self.cameraYfloat = 255
                 rawPacket = MakeCommsPacket(CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value, [int(self.cameraXfloat), int(self.cameraYfloat)])
-                print("[*] Sending raw", [hex(i) for i in rawPacket])
+                # print("[*] Sending raw", [hex(i) for i in rawPacket])
                 self.commsClientSocket.send(rawPacket) 
 
             except Exception as e:
@@ -114,6 +114,50 @@ class KittyClient():
         self.clientRunning = False
         self.disconnect()
 
+    def sendStartRecording(self):
+        print('[*] Sending START_RECORDING')
+        rawPacket = MakeCommsPacket(CommsPacketType.CMD_START_RECORDING_VIDEO.value, [])
+        self.commsClientSocket.send(rawPacket)
+
+    # TODO # PLEASE FOR THE LOVE OF GOD CLEAN THIS STUFF UP
+    def setX(self, angle):
+        self.cameraXfloat = angle
+
+    def setY(self, angle):
+        self.cameraYfloat = angle
+
+    def moveX(self, rate):
+        self.cameraXfloat += rate
+        if self.cameraXfloat > 180:
+            self.cameraXfloat = 180
+        if self.cameraXfloat < 0:
+            self.cameraXfloat = 0
+        print(self.cameraXfloat)
+
+    def moveY(self, rate):
+        self.cameraYfloat += rate
+        if self.cameraYfloat > 180:
+            self.cameraYfloat = 180
+        if self.cameraYfloat < 0:
+            self.cameraYfloat = 0
+        print(self.cameraYfloat)
+
+    def updateX(self, x):
+        self.cameraXfloat = x
+        if self.cameraXfloat > 180:
+            self.cameraXfloat = 180
+        if self.cameraXfloat < 0:
+            self.cameraXfloat = 0
+        print("SETTING CLIENT X TO", self.cameraXfloat)
+
+    def updateY(self, y):
+        self.cameraYfloat = y
+        if self.cameraYfloat > 180:
+            self.cameraYfloat = 180
+        if self.cameraYfloat < 0:
+            self.cameraYfloat = 0
+        print("SETTING CLIENT Y TO", self.cameraYfloat)
+    
     # Starts the motor thread. Client must have connected priorly
     def startClient(self):
         self.clientRunning = True

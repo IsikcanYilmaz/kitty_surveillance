@@ -6,12 +6,14 @@ import threading
 import picamera
 import camera
 import time
+import datetime
 
 #TODO : need to redo following code
 from pwm import Motors
 from common import *
 from debug import *
 from comms_packet_structure import *
+from external_processes import *
 
 BUFFER_SIZE = 20
 BUFFER_FILENAME = 'buffer.h264'
@@ -57,13 +59,13 @@ class KittyServer():
     # This thread continuously receives data, passes to processInput
     # TODO: Currently there's one size in receiving. have this
     def ServerRxThread(self):
-        self.PRINT("Server Rx thread started")
+        self.PRINT("[*] Server Rx thread started")
         rxBuf = []
         while (self.connectionEstablished):
             try:
                 rxData = self.clientConnection['commsConn'].recv(4)
                 rxBuf.extend(rxData)
-                print([hex(i) for i in rxData], rxData == [], len(rxData))
+                print("[*] Received data", [hex(i) for i in rxData])
                 # If we received the magic number, we can assume we have 
                 # a full packet in our hands. process it.
                 if (rxData == bytes(COMMS_PACKET_MAGIC)):
@@ -77,7 +79,7 @@ class KittyServer():
                 print(e)
                 print("[!] TERMINATING CONNECTION")
                 self.terminateConnections()
-        self.PRINT("Server Rx thread ending")
+        self.PRINT("[*] Server Rx thread ending")
 
 
     def ServerTxThread(self):
@@ -118,7 +120,7 @@ class KittyServer():
     # Packet types defined in comms_packet_structure.py
     def processInput(self, data):
         decodedPacket = DecodeRawCommsPacket(bytes(data))
-        print('[*] Processed packet: ', decodedPacket)
+        self.PRINT('Processed packet: ', decodedPacket)
         if (decodedPacket['cmd_id'] == CommsPacketType.CMD_CAMERA_ANGLE_CHANGED.value):
             payload = decodedPacket['payload'][0:2] # rest of the bytes are padding bytes
             try:
@@ -128,7 +130,7 @@ class KittyServer():
                 print(data)
                 return
             
-            print("[*] CAMERA ANGLE CHANGED.", newX, newY)
+            print("CAMERA ANGLE CHANGED. % %", newX, newY)
 
             if (newX < 0):
                 newX = 0
@@ -145,7 +147,10 @@ class KittyServer():
             self.PRINT("NEW X: %d, NEW Y: %d" % (newX, newY))
 
         if (decodedPacket['cmd_id'] == CommsPacketType.CMD_START_RECORDING_VIDEO.value):
-            pass
+            now = datetime.datetime.now()
+            filename = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            ret = EXT_runRaspicam(filename=filename, time_ms= 30 * 1000)
+            self.PRINT('RUNNING RASPICAM ret:', ret)
 
         if (decodedPacket['cmd_id'] == CommsPacketType.CMD_STOP_RECORDING_VIDEO.value):
             pass

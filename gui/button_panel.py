@@ -7,10 +7,11 @@ from gui.custom_button import CustomButton
 
 from common import *
 
-LEFT_PRESS  = 0
-RIGHT_PRESS = 1
-UP_PRESS    = 2
-DOWN_PRESS  = 3
+LEFT_PRESS      = 0
+RIGHT_PRESS     = 1
+UP_PRESS        = 2
+DOWN_PRESS      = 3
+START_RECORDING = 4
 
 
 class ButtonPanel(QtWidgets.QGroupBox):
@@ -29,8 +30,8 @@ class ButtonPanel(QtWidgets.QGroupBox):
         self.upButton.clicked.connect(lambda: self.buttonPushed(UP_PRESS))
         self.downButton.clicked.connect(lambda: self.buttonPushed(DOWN_PRESS))
 
-        # self.videoTestButton = CustomButton("Video Test")
-        # self.videoTestButton.clicked.connect(lambda: self.parent.startVideo())
+        self.videoTestButton = CustomButton("Video Test")
+        self.videoTestButton.clicked.connect(lambda: self.buttonPushed(START_RECORDING))
 
         # self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
         # self.slider.setMinimum = 0
@@ -41,7 +42,7 @@ class ButtonPanel(QtWidgets.QGroupBox):
         innerLayout.addWidget(self.leftButton,   1, 0)
         innerLayout.addWidget(self.rightButton,  1, 1)
         # innerLayout.addWidget(self.slider,       2, 0, 2, 2)
-        # innerLayout.addWidget(self.videoTestButton, 3, 0)
+        innerLayout.addWidget(self.videoTestButton, 2, 0)
 
         # self.slider.valueChanged.connect(self.sliderValueChanged)
 
@@ -57,6 +58,8 @@ class ButtonPanel(QtWidgets.QGroupBox):
             self.parent.clientHandle.moveY(GUI_INCREMENT_RATE)
         if button == DOWN_PRESS:
             self.parent.clientHandle.moveY(-GUI_INCREMENT_RATE)
+        if button == START_RECORDING:
+            self.parent.clientHandle.sendStartRecording()
 
 
 
