@@ -45,27 +45,27 @@ class KittyServer():
 
         self.cameraX = 45
         self.cameraY = 45
-        self.camera = None # TODO
 
         self.motors = Motors()
+        self.PRINT("Initialized")
 
     # Joins threads, destroys camera and motor objects. Add anything else if you think of any
     def deinitialize(self):
         self.serverRxThread.join()
-        self.serverTxThread.join()
-        del(self.camera)
+        # self.serverTxThread.join()
         del(self.motors)
+        self.PRINT("Deinitialized")
 
     # This thread continuously receives data, passes to processInput
     # TODO: Currently there's one size in receiving. have this
     def ServerRxThread(self):
-        self.PRINT("[*] Server Rx thread started")
+        self.PRINT("Server Rx thread started")
         rxBuf = []
         while (self.connectionEstablished):
             try:
                 rxData = self.clientConnection['commsConn'].recv(4)
                 rxBuf.extend(rxData)
-                print("[*] Received data", [hex(i) for i in rxData])
+                print("Received data", [hex(i) for i in rxData])
                 # If we received the magic number, we can assume we have 
                 # a full packet in our hands. process it.
                 if (rxData == bytes(COMMS_PACKET_MAGIC)):
@@ -79,7 +79,7 @@ class KittyServer():
                 print(e)
                 print("[!] TERMINATING CONNECTION")
                 self.terminateConnections()
-        self.PRINT("[*] Server Rx thread ending")
+        self.PRINT("Server Rx thread ending")
 
 
     def ServerTxThread(self):
@@ -130,8 +130,6 @@ class KittyServer():
                 print(data)
                 return
             
-            print("CAMERA ANGLE CHANGED. % %", newX, newY)
-
             if (newX < 0):
                 newX = 0
             elif (newX > 180):
@@ -177,7 +175,7 @@ class KittyServer():
             #self.serverTxThread.start() # TODO # Eventually implement tx stuff
 
             # Wait while we're connected to a client.
-            while self.clientConnection:
+            while self.clientConnection['running']:
                 pass
 
             # When a disconnect occurs, deinitialize

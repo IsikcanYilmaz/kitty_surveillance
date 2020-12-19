@@ -38,17 +38,16 @@ class XYPadPanel(QtWidgets.QGroupBox):
 class XYPad(QtWidgets.QFrame):
     def __init__(self, parent):
         super(XYPad, self).__init__()
+        self.height = 200
+        self.width = 200
         self.parent = parent
         self.pressed = False
         self.lastUpdatedXScaled = 0
         self.lastUpdatedYScaled = 0
-        self.xScaled = 0
-        self.yScaled = 0
-        self.x = 0
-        self.y = 0
-
-        self.height = 200
-        self.width = 200
+        self.x = 90
+        self.y = 90
+        self.xScaled = self.x * 180 / self.width
+        self.yScaled = self.y * 180 / self.height
         self.setFixedSize(self.width, self.height)
 
     def mouseMoveEvent(self, event):
@@ -68,7 +67,7 @@ class XYPad(QtWidgets.QFrame):
         painter.setPen(QPen(Qt.black,  8, Qt.SolidLine))
         painter.drawRect(0, 0, self.width, self.height)
         painter.setBrush(QBrush(Qt.red, Qt.SolidPattern))
-        painter.drawEllipse(self.x, self.y, 5, 5)
+        painter.drawEllipse(self.x-2, self.y-2, 4, 4)
 
     def updatePressedLocation(self, event):
         x = event.x()
